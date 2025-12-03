@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merry Christmas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 全局设置 --- */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #050a10; /* 深邃夜空黑 */
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px; /* 增强3D透视 */
+        }
+
+        /* --- 1. 3D 物理雪花 (升级版) --- */
+        #snow-container {
+            position: absolute;
+            width: 100%; height: 100%;
+            z-index: 20; pointer-events: none;
+            overflow: hidden;
+        }
+        .snowflake {
+            position: absolute;
+            color: #fff;
+            user-select: none;
+            /* 关键：立体光影，让雪花看起来有厚度 */
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5), -1px -1px 0 rgba(255,255,255,0.3);
+            will-change: transform;
+            animation: fall linear infinite;
+        }
+        
+        /* 复杂的飘落动画：包含旋转、翻转、左右摇摆 */
+        @keyframes fall {
+            0% {
+                opacity: 0;
+                transform: translate(0, -10vh) rotate3d(1, 1, 1, 0deg) scale(0.8);
+            }
+            10% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% {
+                opacity: 0.4;
+                /* var(--sway) 是随机横向偏移，var(--rot) 是随机旋转 */
+                transform: translate(var(--sway), 110vh) rotate3d(1, 1, 0, var(--rot)) scale(1);
+            }
+        }
+
+        /* --- 2. 装饰组件：超立体铃铛 & 松枝 --- */
+        /* 固定角落容器，确保位置绝对不乱动 */
+        .corner-deco {
+            position: absolute;
+            width: 200px; height: 200px;
+            pointer-events: none;
+            z-index: 15;
+            /* 调试用 border: 1px solid red; */
+        }
+        .c-tl { top: 0; left: 0; }
+        .c-tr { top: 0; right: 0; transform: scaleX(-1); } /* 镜像翻转 */
+        .c-bl { bottom: 0; left: 0; transform: scaleY(-1); } 
+        .c-br { bottom: 0; right: 0; transform: scale(-1); }
+
+        /* [松枝] */
+        .pine {
+            position: absolute;
+            width: 150px; height: 60px;
+            background: transparent;
+            border-radius: 50%;
+            box-shadow: 0 15px 0 0 #0d3a0d;
+            top: -20px; left: -20px;
+            transform: rotate(45deg);
+        }
+        .pine::before { /* 针叶纹理 */
+            content: ''; position: absolute; top: 18px; left: 0;
+            width: 100%; height: 100%;
+            border: 4px dashed #1a5c1a; border-radius: 50%;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5));
+        }
+        .pine-2 {
+            top: -10px; left: -50px; transform: rotate(15deg); width: 120px;
+        }
+
+        /* [立体铃铛] */
+        .bell-wrapper {
+            position: absolute; top: 40px; left: 50px;
+            transform-origin: top center;
+            animation: swingBell 3s infinite ease-in-out alternate;
+            filter: drop-shadow(5px 10px 10px rgba(0,0,0,0.6));
+        }
+        .bell-body {
+            width: 60px; height: 60px;
+            /* 黄金光泽渐变 */
+            background: radial-gradient(circle at 30% 30%, #fffdc2, #ffd700 30%, #b8860b 80%, #423004 100%);
+            border-radius: 50% 50% 10% 10%;
+            position: relative;
+        }
+        .bell-rim {
+            position: absolute; bottom: -8px; left: -5px;
+            width: 70px; height: 18px;
+            background: linear-gradient(90deg, #5e4605, #ffd700, #5e4605);
+            border-radius: 10px;
+        }
+        .bell-clapper {
+            position: absolute; bottom: -12px; left: 22px;
+            width: 16px; height: 16px;
+            background: #332200; border-radius: 50%;
+        }
+        /* 铃铛上的蝴蝶结 */
+        .knot {
+            position: absolute; top: -15px; left: 15px;
+            width: 30px; height: 30px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #922b21);
+            border-radius: 50%; z-index: 2;
+        }
+        .knot::before, .knot::after {
+            content: ''; position: absolute; top: 5px; z-index: -1;
+            width: 40px; height: 25px;
+            background: linear-gradient(#c0392b, #7b241c);
+            border-radius: 5px;
+        }
+        .knot::before { left: -30px; transform: rotate(-25deg); }
+        .knot::after { right: -30px; transform: rotate(25deg); }
+
+        @keyframes swingBell { 0% { transform: rotate(5deg); } 100% { transform: rotate(-5deg); } }
+
+
+        /* --- 3. 装饰组件：立体袜子 --- */
+        /* 袜子固定容器 */
+        .sock-fixed {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+            filter: drop-shadow(8px 8px 12px rgba(0,0,0,0.7)); /* 强烈的投影 */
+            animation: floatSock 4s ease-in-out infinite;
+        }
+        /* 袜子本体 */
+        .sock-shape {
+            position: relative; width: 70px; height: 100px;
+            transform-origin: top center;
+        }
+        .s-top {
+            position: absolute; top: 0; left: 0; width: 60px; height: 35px;
+            background: #ecf0f1; border-radius: 6px; z-index: 2;
+            /* 绒毛质感 */
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.2);
+        }
+        .s-leg {
+            position: absolute; top: 25px; left: 5px; width: 50px; height: 90px;
+            /* 红色织物立体感 */
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 0 0 30px 30px;
+            /* 内阴影，让它看起来鼓鼓的 */
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), inset 5px 0 10px rgba(255,255,255,0.1);
+        }
+        .s-foot {
+            position: absolute; bottom: 0; left: -30px; width: 60px; height: 45px;
+            background: inherit; border-radius: 30px 0 0 30px;
+            box-shadow: inset 5px -5px 10px rgba(0,0,0,0.3);
+        }
+        .s-heel {
+            position: absolute; bottom: 0; right: 0; width: 30px; height: 30px;
+            background: #bdc3c7; border-radius: 30px 0 0 0; opacity: 0.9;
+        }
+        .s-toe {
+            position: absolute; bottom: 0; left: -30px; width: 30px; height: 45px;
+            background: #bdc3c7; border-radius: 30px 0 0 30px; z-index: 3;
+        }
+
+        /* 袜子位置定义 (绝对定位，不乱跑) */
+        .pos-1 { top: 150px; left: 80px; transform: rotate(-10deg) scale(0.9); animation-delay: 0s; }
+        .pos-2 { top: 200px; right: 100px; transform: rotate(10deg); animation-delay: 1.5s; }
+        .pos-3 { bottom: 100px; left: 120px; transform: rotate(-5deg) scale(0.8); animation-delay: 0.5s; }
+        .pos-4 { top: 120px; left: 50%; margin-left: -400px; transform: rotate(5deg) scale(0.7); animation-delay: 2s; opacity: 0.9; } /* 树左侧 */
+        .pos-5 { bottom: 150px; right: 150px; transform: rotate(15deg) scale(0.85); animation-delay: 1s; }
+
+        @keyframes floatSock {
+            0%, 100% { transform: rotate(var(--r)) translateY(0); }
+            50% { transform: rotate(var(--r)) translateY(-10px); }
+        }
+
+        /* --- 4. 核心功能保留 --- */
+        .header-title {
+            position: absolute; top: 5%; width: 100%; height: 150px; z-index: 100; pointer-events: none; 
+            display: flex; justify-content: center;
+        }
+        text {
+            fill: #e74c3c; font-family: 'Mountains of Christmas', cursive; font-size: 60px; font-weight: bold;
+            letter-spacing: 5px; stroke: #fff; stroke-width: 1.5px; text-shadow: 0 0 15px rgba(255, 50, 50, 0.8); 
+        }
+
+        .scene {
+            position: relative; transform-style: preserve-3d; width: 0; height: 0;
+            transform: translateY(-40px) scale(0.9); cursor: grab; z-index: 50;
+        }
+        .scene:active { cursor: grabbing; }
+
+        .top-star-container {
+            position: absolute; top: -340px; left: 0;
+            transform-style: preserve-3d; animation: rotateStar 5s linear infinite;
+        }
+        .star-shape {
+            position: absolute; left: -40px; top: -40px; width: 80px; height: 80px;
+            background: rgba(255, 215, 0, 0.95);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        .star-shape:nth-child(1) { transform: rotateY(0deg); }
+        .star-shape:nth-child(2) { transform: rotateY(90deg); }
+        .star-core {
+            position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 30px 10px rgba(255, 255, 200, 0.8);
+        }
+        @keyframes rotateStar { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+
+        .card {
+            position: absolute; width: 100px; height: 140px; background: #fff; padding: 4px;
+            border-radius: 4px; border: 2px solid #d4af37; backface-visibility: hidden; 
+            transform-style: preserve-3d; left: -50px; top: -70px; cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { border-color: #2ecc71; box-shadow: 0 0 25px rgba(255, 255, 0, 0.9); z-index: 100; }
+        .card:hover img { transform: scale(1.08); }
+        .card img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 2px; background: #f0f0f0;
+            pointer-events: none; transition: transform 0.3s ease;
+        }
+
+        #lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+            z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        #lightbox.show { opacity: 1; }
+        #lightbox img {
+            max-width: 90vw; max-height: 75vh; border: 6px solid #fff; border-radius: 8px;
+            box-shadow: 0 0 40px rgba(255,255,255,0.2); margin-bottom: 20px;
+        }
+        .close-btn {
+            padding: 12px 35px; background: #c0392b; color: #fff; font-family: 'Mountains of Christmas', cursive, 'Arial';
+            font-size: 24px; font-weight: bold; border: 2px solid #f1c40f; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: transform 0.2s, background 0.2s; outline: none;
+        }
+        .close-btn:hover { background: #e74c3c; transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. 动态雪花容器 -->
+    <div id="snow-container"></div>
+
+    <!-- 2. 顶部弧形文字 -->
+    <div class="header-title">
+        <svg width="600" height="200" viewBox="0 0 600 200">
+            <path id="curve" d="M 50,150 Q 300,50 550,150" fill="transparent" />
+            <text width="600">
+                <textPath xlink:href="#curve" startOffset="50%" text-anchor="middle">
+                    Merry Christmas
+                </textPath>
+            </text>
+        </svg>
+    </div>
+
+    <!-- ============ 固定角落装饰 (铃铛+松枝) ============ -->
+    <div class="corner-deco c-tl">
+        <div class="pine"></div><div class="pine pine-2"></div>
+        <div class="bell-wrapper">
+            <div class="knot"></div>
+            <div class="bell-body"><div class="bell-rim"></div><div class="bell-clapper"></div></div>
+        </div>
+    </div>
+
+    <div class="corner-deco c-tr">
+        <div class="pine"></div>
+        <div class="bell-wrapper">
+            <div class="knot"></div>
+            <div class="bell-body"><div class="bell-rim"></div><div class="bell-clapper"></div></div>
+        </div>
+    </div>
+
+    <div class="corner-deco c-bl">
+        <div class="pine"></div>
+        <div class="bell-wrapper">
+            <div class="knot"></div>
+            <div class="bell-body"><div class="bell-rim"></div><div class="bell-clapper"></div></div>
+        </div>
+    </div>
+
+    <div class="corner-deco c-br">
+        <div class="pine"></div>
+        <div class="bell-wrapper">
+            <div class="knot"></div>
+            <div class="bell-body"><div class="bell-rim"></div><div class="bell-clapper"></div></div>
+        </div>
+    </div>
+
+    <!-- ============ 5只固定位置的立体袜子 ============ -->
+    <!-- 每个袜子都用 sock-fixed 定位，内部用 sock-shape 绘制 -->
+    <div class="sock-fixed pos-1" style="--r: -10deg">
+        <div class="sock-shape"><div class="s-top"></div><div class="s-leg"><div class="s-foot"><div class="s-toe"></div><div class="s-heel"></div></div></div></div>
+    </div>
+    <div class="sock-fixed pos-2" style="--r: 10deg">
+        <div class="sock-shape"><div class="s-top"></div><div class="s-leg"><div class="s-foot"><div class="s-toe"></div><div class="s-heel"></div></div></div></div>
+    </div>
+    <div class="sock-fixed pos-3" style="--r: -5deg">
+        <div class="sock-shape"><div class="s-top"></div><div class="s-leg"><div class="s-foot"><div class="s-toe"></div><div class="s-heel"></div></div></div></div>
+    </div>
+    <div class="sock-fixed pos-4" style="--r: 5deg">
+        <div class="sock-shape"><div class="s-top"></div><div class="s-leg"><div class="s-foot"><div class="s-toe"></div><div class="s-heel"></div></div></div></div>
+    </div>
+    <div class="sock-fixed pos-5" style="--r: 15deg">
+        <div class="sock-shape"><div class="s-top"></div><div class="s-leg"><div class="s-foot"><div class="s-toe"></div><div class="s-heel"></div></div></div></div>
+    </div>
+
+    <!-- ==================================================== -->
+
+    <!-- 3D 圣诞树主体 -->
+    <div class="scene" id="tree">
+        <div class="top-star-container">
+            <div class="star-core"></div>
+            <div class="star-shape"></div>
+            <div class="star-shape"></div>
+        </div>
+        <!-- 照片由 JS 生成 -->
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox">
+        <img id="lb-img" src="" alt="Photo">
+        <button class="close-btn" onclick="closeLightbox()">让我看看别的照片 🎄</button>
+    </div>
+
+    <script>
+        // ================= 配置区 =================
+        const TOTAL_PHOTOS = 764;  
+        const DISPLAY_COUNT = 29; 
+        const FOLDER_NAME = '照片_小图'; 
+        // ========================================
+
+        const tree = document.getElementById('tree');
+        const snowContainer = document.getElementById('snow-container');
+
+        // 1. 生成 3D 物理雪花 (加大尺寸，增加数量，不规则飘落)
+        function createSnowflakes() {
+            const snowCount = 200; // 数量加倍
+            const symbols = ['❄', '❅', '❆', '•', '+']; 
+            
+            for(let i=0; i<snowCount; i++) {
+                const snow = document.createElement('div');
+                snow.classList.add('snowflake');
+                
+                snow.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+                
+                // 1. 随机位置
+                const startLeft = Math.random() * 100;
+                snow.style.left = startLeft + '%';
+                
+                // 2. 随机大小 (明显加大: 15px ~ 35px)
+                const size = Math.random() * 20 + 15; 
+                snow.style.fontSize = size + 'px';
+                
+                // 3. 随机物理参数 (不规则旋转和飘动)
+                const sway = (Math.random() - 0.5) * 300 + 'px'; // 左右飘动幅度加大
+                const rot = (Math.random() * 720 - 360) + 'deg'; // 旋转角度加大
+                
+                snow.style.setProperty('--sway', sway);
+                snow.style.setProperty('--rot', rot);
+
+                // 4. 随机时间
+                const duration = Math.random() * 8 + 4; // 4-12秒
+                snow.style.animationDuration = duration + 's';
+                snow.style.animationDelay = (Math.random() * -12) + 's'; 
+
+                // 5. 景深模糊 & 透明度
+                const depth = Math.random();
+                if(depth < 0.3) {
+                    // 远处：小，模糊，暗
+                    snow.style.filter = `blur(2px)`;
+                    snow.style.opacity = 0.4;
+                    snow.style.zIndex = 1;
+                } else if (depth > 0.8) {
+                    // 近处：大，清晰，亮
+                    snow.style.filter = `blur(0px)`;
+                    snow.style.opacity = 1;
+                    snow.style.zIndex = 60; // 甚至在树前面
+                } else {
+                    // 中间
+                    snow.style.filter = `blur(0.5px)`;
+                    snow.style.opacity = 0.7;
+                    snow.style.zIndex = 40;
+                }
+                
+                snowContainer.appendChild(snow);
+            }
+        }
+
+        // 2. 随机数辅助
+        function getRandomIndices(total, count) {
+            const indices = new Set();
+            while (indices.size < count) {
+                const r = Math.floor(Math.random() * total) + 1;
+                indices.add(r);
+            }
+            return Array.from(indices);
+        }
+
+        // 3. 构建树
+        function buildTree() {
+            const indices = getRandomIndices(TOTAL_PHOTOS, DISPLAY_COUNT);
+            const layers = [
+                { count: 4, y: -160, radius: 100 },
+                { count: 7, y: -40, radius: 180 },
+                { count: 8, y: 90, radius: 250 },
+                { count: 10, y: 220, radius: 320 } 
+            ];
+            let indexPointer = 0;
+            layers.forEach(layer => {
+                const angleStep = 360 / layer.count;
+                for (let i = 0; i < layer.count; i++) {
+                    if (indexPointer >= indices.length) break;
+                    const photoId = indices[indexPointer];
+                    indexPointer++;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    const angle = i * angleStep;
+                    const img = document.createElement('img');
+                    img.src = `${FOLDER_NAME}/${photoId}.jpg`;
+                    img.onerror = function() { this.style.visibility = 'hidden'; };
+                    card.onclick = () => openLightbox(img.src);
+                    card.appendChild(img);
+                    card.style.transform = `
+                        rotateY(${angle}deg) translateY(${layer.y}px) translateZ(${layer.radius}px) rotateX(-10deg)
+                    `;
+                    tree.appendChild(card);
+                }
+            });
+        }
+
+        // 4. 旋转逻辑
+        let startX = 0; let currentDeg = 0; let lastDeg = 0; let isDragging = false; let autoRotateReq;
+        const VERTICAL_OFFSET = -40; 
+
+        function handleStart(x) {
+            isDragging = true; startX = x; tree.style.transition = 'none'; cancelAnimationFrame(autoRotateReq);
+        }
+        function handleMove(x) {
+            if (!isDragging) return;
+            const delta = x - startX; currentDeg = lastDeg + delta * 0.4;
+            tree.style.transform = `translateY(${VERTICAL_OFFSET}px) scale(0.9) rotateY(${currentDeg}deg)`;
+        }
+        function handleEnd() {
+            isDragging = false; lastDeg = currentDeg;
+            tree.style.transition = 'transform 0.2s linear'; loop();
+        }
+
+        document.addEventListener('mousedown', e => handleStart(e.clientX));
+        document.addEventListener('mousemove', e => handleMove(e.clientX));
+        document.addEventListener('mouseup', handleEnd);
+        document.addEventListener('touchstart', e => handleStart(e.touches[0].clientX));
+        document.addEventListener('touchmove', e => handleMove(e.touches[0].clientX));
+        document.addEventListener('touchend', handleEnd);
+
+        function loop() {
+            if (!isDragging && !lightbox.classList.contains('show')) {
+                currentDeg += 0.05; lastDeg = currentDeg;
+                tree.style.transform = `translateY(${VERTICAL_OFFSET}px) scale(0.9) rotateY(${currentDeg}deg)`;
+                autoRotateReq = requestAnimationFrame(loop);
+            } else {
+                autoRotateReq = requestAnimationFrame(loop);
+            }
+        }
+
+        // 5. Lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lb-img');
+        function openLightbox(src) {
+            lightbox.style.display = 'flex';
+            setTimeout(() => { lightbox.classList.add('show'); lbImg.src = src; }, 10);
+        }
+        function closeLightbox() {
+            lightbox.classList.remove('show');
+            setTimeout(() => { lightbox.style.display = 'none'; lbImg.src = ''; }, 300);
+        }
+
+        // 初始化
+        createSnowflakes(); 
+        buildTree();
+        loop();
+    </script>
+</body>
+</html>
